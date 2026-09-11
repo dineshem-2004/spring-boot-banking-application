@@ -1,6 +1,7 @@
 package com.dinesh.banking.serviceimpl;
 
 import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.dinesh.banking.exception.BankAccountException;
@@ -11,27 +12,15 @@ import com.dinesh.banking.service.BankAccountService;
 @Service
 public class BankAccountServiceImpl implements BankAccountService {
 
-	private final BankAccountRepository repository;
+    private final BankAccountRepository repository;
 
-	public BankAccountServiceImpl(BankAccountRepository repository) {
-	    this.repository = repository;
-	}
-
-	
-	@Override
-    public BankAccount createNewAccountDetails(BankAccount bankAccount) {
-        return repository.save(bankAccount);
+    public BankAccountServiceImpl(BankAccountRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public BankAccount getByAccountHolderNameAndAccountNumber(
-            String accountHolderName,
-            String accountNumber) {
-
-        return repository
-                .findByAccountHolderNameAndAccountNumber(accountHolderName, accountNumber)
-                .orElseThrow(() ->
-                        new BankAccountException("Account not found"));
+    public BankAccount createNewAccountDetails(BankAccount bankAccount) {
+        return repository.save(bankAccount);
     }
 
     @Override
@@ -40,30 +29,58 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccount depositAmount(String accountNumber, Double amount) {
-    	
-    	if (amount <= 0) {
-    	    throw new BankAccountException("Deposit amount must be greater than zero");
-    	}
-    	
-        BankAccount account = repository.findByAccountNumber(accountNumber)
+    public BankAccount getByAccountHolderNameAndAccountNumber(
+            String accountHolderName,
+            String accountNumber) {
+
+        return repository
+                .findByAccountHolderNameAndAccountNumber(
+                        accountHolderName,
+                        accountNumber
+                )
+                .orElseThrow(() ->
+                        new BankAccountException(
+                                "Account not found"
+                        )
+                );
+    }
+
+    @Override
+    public BankAccount depositAmount(
+            String accountNumber,
+            Double amount) {
+
+        if (amount == null || amount <= 0) {
+            throw new BankAccountException(
+                    "Deposit amount must be greater than zero"
+            );
+        }
+
+        BankAccount account = repository
+                .findByAccountNumber(accountNumber)
                 .orElseGet(() -> {
                     BankAccountException.accountNotFound(accountNumber);
                     return null;
                 });
 
         account.setBalance(account.getBalance() + amount);
+
         return repository.save(account);
     }
 
     @Override
-    public BankAccount withdrawAmount(String accountNumber, Double amount) {
-    	
-    	if (amount <= 0) {
-    	    throw new BankAccountException("Withdrawal amount must be greater than zero");
-    	}
-    	
-        BankAccount account = repository.findByAccountNumber(accountNumber)
+    public BankAccount withdrawAmount(
+            String accountNumber,
+            Double amount) {
+
+        if (amount == null || amount <= 0) {
+            throw new BankAccountException(
+                    "Withdrawal amount must be greater than zero"
+            );
+        }
+
+        BankAccount account = repository
+                .findByAccountNumber(accountNumber)
                 .orElseGet(() -> {
                     BankAccountException.accountNotFound(accountNumber);
                     return null;
@@ -74,6 +91,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         }
 
         account.setBalance(account.getBalance() - amount);
+
         return repository.save(account);
     }
 
@@ -85,6 +103,5 @@ public class BankAccountServiceImpl implements BankAccountService {
         }
 
         repository.deleteByAccountNumber(accountNumber);
-    }   
+    }
 }
-
